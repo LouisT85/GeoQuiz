@@ -1,5 +1,7 @@
 # 🌍 GéoQuiz
 
+🇫🇷 Français | [🇬🇧 English](README.en.md)
+
 **Apprends la géographie en jouant** : replace les pays sur la carte du monde, reconnais les drapeaux et les silhouettes. Interface bilingue 🇫🇷/🇬🇧 (switch en haut à droite, noms de pays traduits). 100 % statique (HTML/CSS/JS + D3), aucune dépendance serveur — hébergeable gratuitement sur GitHub Pages.
 
 ![Menu de GéoQuiz](docs/screenshots/menu.png)
