@@ -401,6 +401,43 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .lang-switch button { padding: 4px 5px; border-radius: 8px; }
   .lang-switch button img { width: 30px; height: 20px; }
 
+  /* ── Menu compact : tout choisir sans friction ──
+     Cartes de mode sur 2 colonnes (icône + nom, sans description),
+     régions et nombre de questions en lignes défilables, bouton Jouer
+     et record dans une barre fixe toujours visible en bas. */
+  .menu-wrap { padding: 26px 0 120px; }
+  .logo { font-size: 2rem; }
+  .tagline { font-size: 0.95rem; margin-bottom: 18px; }
+  .menu-section { margin: 18px 0 10px; }
+
+  .mode-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .mode-card { flex-direction: row; align-items: center; gap: 9px; padding: 11px 12px; }
+  .mode-icon { font-size: 1.25rem; }
+  .mode-label { font-size: 0.92rem; }
+  .mode-desc { display: none; }
+
+  .chip-row { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .chip-row::-webkit-scrollbar { display: none; }
+  .chip { white-space: nowrap; flex-shrink: 0; }
+
+  .menu-footer {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 40;
+    margin-top: 0;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    background: rgba(14, 22, 38, 0.94);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-top: 1px solid var(--line);
+    flex-wrap: nowrap;
+    gap: 12px;
+  }
+  .menu-meta { min-width: 0; }
+  .menu-pool { font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .menu-record { font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .btn-big { flex-shrink: 0; font-size: 1.05rem; padding: 12px 24px; }
+
   /* Header : bouton + mode sur une ligne, les 4 compteurs en dessous
      (sinon Série et Temps débordent à droite sur petit écran). */
   .game-header { flex-wrap: wrap; gap: 8px 12px; padding: 8px 12px; }
