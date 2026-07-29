@@ -11,7 +11,7 @@
 | 🌍 **Complet** | Un nom de pays s'affiche : clique sur son emplacement sur la carte, puis retrouve son drapeau parmi 8 propositions. |
 | 📍 **Carte** | Nom → emplacement uniquement. |
 | 🚩 **Drapeaux** | Nom → drapeau uniquement (8 propositions, distracteurs du même continent). |
-| ✍️ **Drapeaux (libre)** | Un drapeau s'affiche : écris le nom du pays (saisie libre). |
+| 🔤 **Drapeaux (à écrire)** | Un drapeau s'affiche : écris le nom du pays (saisie libre). |
 | 🧭 **Drapeau → Carte** | Un drapeau s'affiche : clique sur le pays auquel il appartient. |
 | 🧩 **Silhouettes** | La forme seule d'un pays s'affiche : retrouve son nom. |
 | 🏛️ **Capitales** | Pays → capitale et capitale → pays (direction tirée au sort à chaque question). |
