@@ -165,6 +165,9 @@ def main():
             page.click("[data-continent='Monde']")
             page.click("#btn-play")
             page.wait_for_selector(".type-input", timeout=3000)
+            # Le champ doit avoir le focus : on écrit sans cliquer dessus.
+            assert page.evaluate(
+                "document.activeElement === document.querySelector('.type-input')")
             target = page.evaluate("""() => {
               const src = document.querySelector('.target-flag').src;
               const iso2 = src.split('/').pop().replace('.png', '');

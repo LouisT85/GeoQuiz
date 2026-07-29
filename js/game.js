@@ -424,11 +424,7 @@
           this.onTypeSubmit(form.querySelector("input"));
         });
         opts.appendChild(form);
-        // Autofocus seulement hors tactile : sur mobile, le clavier
-        // s'ouvrirait à chaque question et masquerait score et chrono.
-        if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-          form.querySelector("input").focus();
-        }
+        form.querySelector("input").focus();
       } else if (stage === "shape") {
         instr.textContent = t("whichShape");
         tgt.innerHTML = `<svg class="shape-svg"></svg>`;
