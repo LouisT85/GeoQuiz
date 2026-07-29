@@ -146,6 +146,10 @@
     }
     // Pas de changement de langue en pleine partie.
     $("lang-switch").classList.toggle("hidden", screenId === "screen-game");
+    // Sur mobile le menu est long : sans remise à zéro, l'écran suivant
+    // apparaît déjà scrollé et le header (score, chrono) est hors champ.
+    window.scrollTo(0, 0);
+    $("game-layout").scrollTop = 0;
   }
 
   /* ── Partie ──────────────────────────────────────────────────── */
