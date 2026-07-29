@@ -7,7 +7,17 @@
   const $ = (id) => document.getElementById(id);
 
   const RECORDS_KEY = "geoquiz-records-v1";
+  const MENU_KEY = "geoquiz-menu-v1";
+
+  // Dernière config choisie restaurée au lancement : rejouer = un seul tap.
   const state = { modeId: "complet", continent: "Monde", countChoice: "10" };
+  try {
+    const saved = JSON.parse(localStorage.getItem(MENU_KEY)) || {};
+    if (MODES[saved.modeId]) state.modeId = saved.modeId;
+    if (CONTINENTS.includes(saved.continent)) state.continent = saved.continent;
+    if (["10", "20", "tout"].includes(saved.countChoice)) state.countChoice = saved.countChoice;
+  } catch { /* localStorage indisponible ou corrompu : défauts */ }
+
   let currentGame = null;
   let lastSummary = null;
 
@@ -112,6 +122,7 @@
   }
 
   function refreshMenu() {
+    try { localStorage.setItem(MENU_KEY, JSON.stringify(state)); } catch { /* tant pis */ }
     const pool = poolFor(state.modeId, state.continent);
     const timed = !!MODES[state.modeId].timed;
 
