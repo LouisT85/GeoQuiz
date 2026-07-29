@@ -126,4 +126,8 @@ python3 tests/e2e_smoke.py
 
 ## 📄 Licence
 
-[MIT](LICENSE) — Louis Tricoire
+[PolyForm Noncommercial 1.0.0](LICENSE) — © Louis Tricoire.
+
+Le code est librement consultable et réutilisable pour tout usage **non
+commercial** (apprentissage, projets perso, éducation, recherche). Toute
+utilisation commerciale nécessite l'accord préalable de l'auteur.
