@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GéoQuiz — Apprends la géographie en jouant</title>
+  <meta name="description" content="Quiz de géographie : replace les pays sur la carte, reconnais les drapeaux et les silhouettes. Par continent ou monde entier, avec chrono et records.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌍</text></svg>">
+  <!-- PWA : installable sur mobile (« Ajouter à l'écran d'accueil ») -->
+  <meta name="theme-color" content="#0b1220">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="GéoQuiz">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Sélecteur de langue (masqué pendant une partie) -->
+  <div id="lang-switch" class="lang-switch" role="group" aria-label="Langue / Language">
+    <button data-lang="fr" title="Français"><img src="assets/flags/fr.png" alt="Français"></button>
+    <button data-lang="en" title="English"><img src="assets/flags/gb.png" alt="English"></button>
+  </div>
+
+  <!-- ══════════════ MENU ══════════════ -->
+  <section id="screen-menu" class="screen">
+    <div class="menu-wrap">
+      <h1 class="logo">🌍 Géo<span>Quiz</span></h1>
+      <p class="tagline" data-i18n="tagline"></p>
+
+      <h2 class="menu-section" data-i18n="gameMode"></h2>
+      <div id="mode-grid" class="mode-grid"></div>
+
+      <h2 class="menu-section" data-i18n="region"></h2>
+      <div id="continent-row" class="chip-row"></div>
+
+      <h2 id="count-title" class="menu-section" data-i18n="questionCount"></h2>
+      <div id="count-row" class="chip-row"></div>
+
+      <div class="menu-footer">
+        <div class="menu-meta">
+          <div id="menu-pool" class="menu-pool"></div>
+          <div id="menu-record" class="menu-record"></div>
+        </div>
+        <button id="btn-play" class="btn-primary btn-big" data-i18n="play"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ JEU ══════════════ -->
+  <section id="screen-game" class="screen hidden">
+    <header class="game-header">
+      <button id="btn-quit" class="btn-ghost" data-i18n="backMenu"></button>
+      <div id="game-mode-label" class="game-mode-label"></div>
+      <div class="game-stats">
+        <div class="stat"><span class="stat-label" data-i18n="statQuestion"></span><span class="stat-value" id="stat-question">–</span></div>
+        <div class="stat"><span class="stat-label" data-i18n="statScore"></span><span class="stat-value" id="stat-score">0</span></div>
+        <div class="stat"><span class="stat-label" data-i18n="statStreak"></span><span class="stat-value" id="stat-streak">—</span></div>
+        <div class="stat"><span class="stat-label" data-i18n="statTime"></span><span class="stat-value" id="stat-timer">0:00</span></div>
+      </div>
+    </header>
+    <div class="progress-bar"><div id="progress-fill"></div></div>
+
+    <main id="game-layout" class="game-layout">
+      <aside id="question-panel" class="question-panel">
+        <div id="q-instruction" class="q-instruction"></div>
+        <div id="q-target" class="q-target"></div>
+        <div id="q-options" class="q-options"></div>
+        <div id="q-feedback" class="q-feedback"></div>
+        <div class="q-actions">
+          <button id="btn-skip" class="btn-ghost" data-i18n="skip"></button>
+        </div>
+      </aside>
+
+      <div id="map-wrap" class="map-wrap">
+        <svg id="map-svg" role="img" aria-label="Carte du monde interactive"></svg>
+        <div class="map-controls">
+          <button id="zoom-in" title="Zoomer">+</button>
+          <button id="zoom-out" title="Dézoomer">−</button>
+          <button id="zoom-reset" title="Réinitialiser la vue">⌂</button>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <!-- ══════════════ FIN DE PARTIE ══════════════ -->
+  <section id="screen-end" class="screen hidden">
+    <div class="end-card">
+      <div id="end-emoji" class="end-emoji">🏆</div>
+      <h2 id="end-title">Partie terminée&nbsp;!</h2>
+      <div id="end-score" class="end-score">0 pts</div>
+      <div id="end-record" class="end-record"></div>
+      <div class="end-stats">
+        <div class="end-stat"><span id="end-perfect" class="end-stat-value">–</span><span class="end-stat-label" data-i18n="endPerfect"></span></div>
+        <div class="end-stat"><span id="end-time" class="end-stat-value">–</span><span class="end-stat-label" data-i18n="endTime"></span></div>
+        <div class="end-stat"><span id="end-streak" class="end-stat-value">–</span><span class="end-stat-label" data-i18n="endStreak"></span></div>
+      </div>
+      <div class="end-actions">
+        <button id="btn-replay-errors" class="btn-ghost hidden"></button>
+        <button id="btn-replay" class="btn-primary" data-i18n="replay"></button>
+        <button id="btn-menu" class="btn-ghost" data-i18n="menu"></button>
+      </div>
+    </div>
+  </section>
+
+  <script src="js/vendor/d3.v7.min.js"></script>
+  <script src="js/vendor/topojson-client.min.js"></script>
+  <script src="js/data/countries.js"></script>
+  <script src="js/data/world-topo.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
