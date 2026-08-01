@@ -63,16 +63,20 @@ autorisation à accorder — il s'installe depuis le navigateur une fois le site
 déployé (GitHub Pages ci-dessus, ou tout hébergement HTTPS).
 
 1. Ouvre `https://<utilisateur>.github.io/GeoQuiz/` sur ton téléphone.
-2. **Android (Chrome)** : menu ⋮ → **Ajouter à l'écran d'accueil** → *Installer*
-   (Chrome peut aussi le proposer tout seul via une bannière).
-   **iPhone (Safari)** : bouton Partager → **Sur l'écran d'accueil**.
+2. Un bouton **📲 Installer l'app** apparaît sur l'accueil. Sur Chrome, Edge et
+   sur ordinateur, il ouvre directement la boîte de dialogue d'installation.
+   Sur iPhone, Apple n'expose aucune API : le bouton affiche la marche à suivre
+   (Partager → **Sur l'écran d'accueil**). Le bouton se masque tout seul si
+   l'app est déjà installée ou si le navigateur ne sait pas le faire.
 3. L'icône 🌍 apparaît comme une vraie app : plein écran, sans barre d'adresse,
    et **jouable hors-ligne** (tout est mis en cache par le service worker,
    drapeaux compris — ~3 Mo).
 
-> Après une mise à jour du jeu, incrémente la constante `CACHE` dans `sw.js`
-> (`geoquiz-v1` → `geoquiz-v2`) pour que les téléphones récupèrent la
-> nouvelle version au lancement suivant.
+> Après une mise à jour du jeu, incrémente la constante `VERSION` dans `sw.js`.
+> Les joueurs voient alors un bandeau **« ✨ Nouvelle version disponible »** :
+> un tap et l'app se recharge à jour, sans rien vider à la main. Les versions
+> antérieures à ce bandeau (`VERSION` < 7) sont rattrapées automatiquement par
+> le service worker, qui recharge leur page à leur place.
 
 ## 🗂️ Architecture
 
