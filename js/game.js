@@ -70,6 +70,7 @@
       endPerfect: "sans faute", endTime: "temps total", endStreak: "meilleure série",
       newRecord: "🎉 Nouveau record personnel !", recordToBeat: "Record à battre : {score} pts",
       replayErrors: "🔁 Rejouer mes erreurs ({n})", replay: "Rejouer", menu: "Menu",
+      updateReady: "✨ Nouvelle version disponible", updateNow: "Mettre à jour",
       continents: {
         "Monde": "Monde entier", "Afrique": "Afrique",
         "Amérique du Nord": "Amérique du Nord", "Amérique du Sud": "Amérique du Sud",
@@ -124,6 +125,7 @@
       endPerfect: "perfect", endTime: "total time", endStreak: "best streak",
       newRecord: "🎉 New personal best!", recordToBeat: "Best to beat: {score} pts",
       replayErrors: "🔁 Replay my mistakes ({n})", replay: "Play again", menu: "Menu",
+      updateReady: "✨ A new version is available", updateNow: "Update",
       continents: {
         "Monde": "Whole world", "Afrique": "Africa",
         "Amérique du Nord": "North America", "Amérique du Sud": "South America",

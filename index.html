@@ -18,6 +18,13 @@
 </head>
 <body>
 
+  <!-- Nouvelle version détectée (masquée pendant une partie) -->
+  <div id="update-banner" class="update-banner hidden" role="status">
+    <span class="update-text" data-i18n="updateReady"></span>
+    <button id="btn-update" class="btn-primary" data-i18n="updateNow"></button>
+    <button id="btn-update-later" class="update-close" aria-label="×">✕</button>
+  </div>
+
   <!-- Sélecteur de langue (masqué pendant une partie) -->
   <div id="lang-switch" class="lang-switch" role="group" aria-label="Langue / Language">
     <button data-lang="fr" title="Français"><img src="assets/flags/fr.png" alt="Français"></button>

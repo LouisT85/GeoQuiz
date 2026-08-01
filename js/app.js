@@ -157,6 +157,7 @@
     }
     // Pas de changement de langue en pleine partie.
     $("lang-switch").classList.toggle("hidden", screenId === "screen-game");
+    refreshUpdateBanner();
     // Sur mobile le menu est long : sans remise à zéro, l'écran suivant
     // apparaît déjà scrollé et le header (score, chrono) est hors champ.
     window.scrollTo(0, 0);
@@ -279,10 +280,65 @@
     })
   );
 
-  /* ── PWA : installable + hors-ligne (inactif en file://) ────── */
+  /* ── PWA : installable, hors-ligne et mise à jour sans friction ──
+     Le service worker précache tout : sans ce bandeau, une nouvelle version
+     n'arrivait qu'au bout de plusieurs relancements — d'où les vidages de
+     cache à la main. Ici on la détecte, on prévient, et un tap l'installe. */
+  let waitingWorker = null;
+
+  function refreshUpdateBanner() {
+    // Jamais pendant une partie : un tap malheureux ferait perdre la manche.
+    const inGame = !$("screen-game").classList.contains("hidden");
+    $("update-banner").classList.toggle("hidden", !waitingWorker || inGame);
+  }
+
+  $("btn-update").addEventListener("click", () => {
+    if (!waitingWorker) return;
+    $("btn-update").disabled = true;
+    // Le SW prend la main → « controllerchange » → rechargement automatique.
+    waitingWorker.postMessage({ type: "SKIP_WAITING" });
+  });
+  $("btn-update-later").addEventListener("click", () => {
+    waitingWorker = null;
+    refreshUpdateBanner();
+  });
+
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
-    navigator.serviceWorker.register("sw.js").catch(() => {
-      /* http simple ou navigateur ancien : le jeu marche sans */
+    navigator.serviceWorker
+      // updateViaCache "none" : sw.js et ses imports sont toujours revalidés,
+      // sinon le cache HTTP de GitHub Pages peut masquer une nouvelle version.
+      .register("sw.js", { updateViaCache: "none" })
+      .then((reg) => {
+        const announce = (worker) => {
+          if (!worker) return;
+          waitingWorker = worker;
+          refreshUpdateBanner();
+        };
+        // Version déjà téléchargée lors d'une visite précédente.
+        if (reg.waiting) announce(reg.waiting);
+        reg.addEventListener("updatefound", () => {
+          const sw = reg.installing;
+          if (!sw) return;
+          sw.addEventListener("statechange", () => {
+            // « installed » avec un contrôleur = mise à jour, pas 1re install.
+            if (sw.state === "installed" && navigator.serviceWorker.controller) announce(sw);
+          });
+        });
+        // L'appli installée peut rester ouverte des jours : on revérifie au
+        // retour au premier plan, sinon la mise à jour n'est jamais vue.
+        document.addEventListener("visibilitychange", () => {
+          if (!document.hidden) reg.update().catch(() => { /* hors ligne */ });
+        });
+      })
+      .catch(() => {
+        /* http simple ou navigateur ancien : le jeu marche sans */
+      });
+
+    let reloading = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (reloading) return;
+      reloading = true;
+      location.reload();
     });
   }
 
