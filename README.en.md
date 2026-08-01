@@ -54,7 +54,7 @@ python3 -m http.server 8000   # then http://localhost:8000
 
 1. Push the repo to GitHub.
 2. **Settings → Pages → Source: Deploy from a branch**, branch `main`, folder `/ (root)`.
-3. The game is live at `https://<user>.github.io/geo-quiz/`.
+3. The game is live at `https://<user>.github.io/GeoQuiz/`.
 
 ## 📱 Install on your phone
 
@@ -62,7 +62,7 @@ GéoQuiz is a **PWA** (Progressive Web App): no APK, no store, no permission
 to grant — it installs from the browser once the site is deployed
 (GitHub Pages above, or any HTTPS hosting).
 
-1. Open `https://<user>.github.io/geo-quiz/` on your phone.
+1. Open `https://<user>.github.io/GeoQuiz/` on your phone.
 2. **Android (Chrome)**: menu ⋮ → **Add to Home screen** → *Install*
    (Chrome may also offer it by itself with a banner).
    **iPhone (Safari)**: Share button → **Add to Home Screen**.
