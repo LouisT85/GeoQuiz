@@ -543,20 +543,26 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
      Cartes de mode sur 2 colonnes (icône + nom, sans description),
      régions et nombre de questions en lignes défilables, bouton Jouer
      et record dans une barre fixe toujours visible en bas. */
-  .menu-wrap { padding: 26px 0 120px; }
-  .logo { font-size: 2rem; }
-  .tagline { font-size: 0.95rem; margin-bottom: 18px; }
-  .menu-section { margin: 18px 0 10px; }
+  .menu-wrap { padding: 14px 0 100px; }
+  .logo { font-size: 1.75rem; }
+  /* Accroche décorative : sur un téléphone, la hauteur va aux réglages. */
+  .tagline { display: none; }
+  .menu-section { margin: 11px 0 6px; }
 
-  .mode-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .mode-card { flex-direction: row; align-items: center; gap: 9px; padding: 11px 12px; }
-  .mode-icon { font-size: 1.25rem; }
+  .mode-grid { grid-template-columns: repeat(2, 1fr); gap: 7px; }
+  .mode-card { flex-direction: row; align-items: center; gap: 8px; padding: 8px 10px; }
+  .mode-icon { font-size: 1.15rem; }
   .mode-label { font-size: 0.92rem; }
   .mode-desc { display: none; }
 
-  .chip-row { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
-  .chip-row::-webkit-scrollbar { display: none; }
-  .chip { white-space: nowrap; flex-shrink: 0; }
+  /* Les régions passent à la ligne au lieu de défiler latéralement : sur un
+     écran de 360 px, 5 régions sur 7 étaient hors champ sans aucun indice
+     qu'elles existaient. */
+  .chip-row { flex-wrap: wrap; gap: 7px; }
+  .chip { white-space: nowrap; flex-shrink: 0; padding: 7px 13px; font-size: 0.88rem; }
+
+  /* Classement : le podium suffit sur petit écran, le reste ferait défiler. */
+  #menu-board .board-row:nth-child(n + 4) { display: none; }
 
   .menu-footer {
     position: fixed;
