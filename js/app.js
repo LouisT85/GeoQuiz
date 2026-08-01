@@ -254,7 +254,8 @@
   });
   $("zoom-in").addEventListener("click", () => worldMap.zoomBy(1.7));
   $("zoom-out").addEventListener("click", () => worldMap.zoomBy(1 / 1.7));
-  $("zoom-reset").addEventListener("click", () => worldMap.resetZoom());
+  // ⌂ ramène au cadrage de la région jouée, pas au monde entier.
+  $("zoom-reset").addEventListener("click", () => worldMap.goHome());
 
   /* ── Langue ──────────────────────────────────────────────────── */
   function applyI18n() {

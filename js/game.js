@@ -344,7 +344,10 @@
       $("game-mode-label").textContent =
         `${this.mode.icon} ${t(`modes.${cfg.modeId}.label`)} · ${t(`continents.${cfg.continent}`)}`;
 
-      if (this.map) this.map.clearAll();
+      if (this.map) {
+        this.map.clearAll();
+        this.map.setHome(this.fitKeys);
+      }
       this.startQuestion();
     }
 
@@ -381,7 +384,9 @@
 
       if (this.map) {
         this.map.clearTransient();
-        this.map.fitTo(this.fitKeys);
+        // La vue du joueur est conservée d'une question à l'autre : on ne
+        // recadre que si le jeu a bougé la caméra (révélation d'un pays).
+        if (this.map.autoMoved) this.map.goHome();
       }
       this.renderStage();
     }

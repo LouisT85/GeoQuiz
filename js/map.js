@@ -26,7 +26,11 @@
       this.path = d3.geoPath(this.projection);
 
       this.root = this.svg.append("g");
-      this.countriesG = this.root.append("g").attr("stroke-width", 0.5);
+      this.countriesG = this.root.append("g");
+      this.zoomK = 1;
+      this.baseStroke = 0.5;
+      this.refreshStroke();
+      window.addEventListener("resize", () => this.refreshStroke());
 
       this.paths = this.countriesG
         .selectAll("path")
@@ -45,7 +49,8 @@
         .translateExtent([[0, 0], [W, H]])
         .on("zoom", (event) => {
           this.root.attr("transform", event.transform);
-          this.countriesG.attr("stroke-width", 0.5 / event.transform.k);
+          this.zoomK = event.transform.k;
+          this.applyStroke();
         });
       this.svg.call(this.zoom).on("dblclick.zoom", null);
     }
@@ -57,6 +62,26 @@
 
     pathOf(key) {
       return this.paths.filter((d) => WorldMap.keyOf(d) === key);
+    }
+
+    /**
+     * Épaisseur des frontières. La carte est dessinée dans un repère de 1000
+     * unités quelle que soit sa taille réelle : à valeur égale, le trait est
+     * deux à trois fois plus fin sur un téléphone que sur un écran large. On
+     * raisonne donc en pixels, avec un trait plus marqué sur petit écran.
+     */
+    refreshStroke() {
+      const px = this.svg.node().getBoundingClientRect().width;
+      if (px > 0) {
+        const unitsPerPx = W / px;
+        this.baseStroke = Math.min(2.4, (px < 620 ? 0.75 : 0.45) * unitsPerPx);
+      }
+      this.applyStroke();
+    }
+
+    /** Le trait garde la même épaisseur à l'écran quel que soit le zoom. */
+    applyStroke() {
+      this.countriesG.attr("stroke-width", this.baseStroke / this.zoomK);
     }
 
     setEnabled(b) {
@@ -78,8 +103,10 @@
     reveal(key) {
       const p = this.pathOf(key);
       p.classed("revealed", true).raise();
-      const f = this.featureByKey.get(key);
-      if (f) this.zoomToFeature(f);
+      if (this.featureByKey.has(key)) {
+        this.autoMoved = true; // la caméra a bougé sans le joueur : on reviendra
+        this.zoomToKey(key);
+      }
     }
 
     /** À appeler au début de chaque question : efface les états transitoires. */
@@ -92,41 +119,104 @@
       this.paths.classed("found", false).classed("revealed", false).classed("wrong", false);
     }
 
-    zoomToFeature(f, maxScale = 50) {
-      const [[x0, y0], [x1, y1]] = this.path.bounds(f);
-      const scale = Math.min(
-        maxScale,
-        0.35 / Math.max((x1 - x0) / W, (y1 - y0) / H)
-      );
-      const t = d3.zoomIdentity
-        .translate(W / 2, H / 2)
-        .scale(Math.max(1, scale))
-        .translate(-(x0 + x1) / 2, -(y0 + y1) / 2);
-      this.svg.transition().duration(800).call(this.zoom.transform, t);
-    }
+    /* ── Cadrage ─────────────────────────────────────────────── */
 
-    /** Cadre la vue sur un ensemble de pays (filtre continent). */
-    fitTo(keys) {
-      if (!keys || !keys.length) return this.resetZoom();
-      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-      for (const key of keys) {
-        const f = this.featureByKey.get(key);
-        if (!f) continue;
-        const b = this.path.bounds(f);
-        x0 = Math.min(x0, b[0][0]); y0 = Math.min(y0, b[0][1]);
-        x1 = Math.max(x1, b[1][0]); y1 = Math.max(y1, b[1][1]);
+    /**
+     * Boîtes englobantes des morceaux de terre d'un pays, en écartant ceux qui
+     * traversent l'antiméridien : une fois projetés ils s'étalent sur toute la
+     * largeur de la carte (Russie, Alaska, Fidji) et rendraient inutilisable
+     * tout cadrage calculé dessus.
+     */
+    boxesOf(key) {
+      const f = this.featureByKey.get(key);
+      const geom = f && f.geometry;
+      if (!geom) return [];
+      const polys = geom.type === "Polygon" ? [geom.coordinates] : geom.coordinates;
+      const out = [];
+      for (const coordinates of polys) {
+        const b = this.path.bounds({ type: "Feature", geometry: { type: "Polygon", coordinates } });
+        if (b[1][0] - b[0][0] > W / 3) continue;
+        out.push({
+          x0: b[0][0], y0: b[0][1], x1: b[1][0], y1: b[1][1],
+          cx: (b[0][0] + b[1][0]) / 2, cy: (b[0][1] + b[1][1]) / 2,
+        });
       }
-      if (!isFinite(x0)) return this.resetZoom();
-      const scale = Math.min(12, 0.9 / Math.max((x1 - x0) / W, (y1 - y0) / H));
-      const t = d3.zoomIdentity
-        .translate(W / 2, H / 2)
-        .scale(Math.max(1, scale))
-        .translate(-(x0 + x1) / 2, -(y0 + y1) / 2);
-      this.svg.transition().duration(700).call(this.zoom.transform, t);
+      return out;
     }
 
-    resetZoom() {
-      this.svg.transition().duration(600).call(this.zoom.transform, d3.zoomIdentity);
+    /**
+     * Transformation cadrant un ensemble de pays. Les morceaux très excentrés
+     * sont écartés du calcul — sans ça la Russie fait cadrer « Europe » sur le
+     * monde entier — mais aucun pays du lot ne peut finir hors champ.
+     */
+    transformFor(keys) {
+      if (!keys || !keys.length) return d3.zoomIdentity;
+      const perCountry = keys.map((k) => this.boxesOf(k)).filter((b) => b.length);
+      const all = perCountry.flat();
+      if (!all.length) return d3.zoomIdentity;
+
+      const median = (a) => a.slice().sort((x, y) => x - y)[a.length >> 1];
+      const mx = median(all.map((r) => r.cx));
+      const my = median(all.map((r) => r.cy));
+      const dists = all.map((r) => Math.hypot(r.cx - mx, r.cy - my));
+      const limit = Math.max(median(dists), 1) * 3.2;
+
+      let box = null;
+      const grow = (r) => {
+        box = box
+          ? { x0: Math.min(box.x0, r.x0), y0: Math.min(box.y0, r.y0),
+              x1: Math.max(box.x1, r.x1), y1: Math.max(box.y1, r.y1) }
+          : { x0: r.x0, y0: r.y0, x1: r.x1, y1: r.y1 };
+      };
+      all.forEach((r, i) => { if (dists[i] <= limit) grow(r); });
+      if (!box) return d3.zoomIdentity;
+
+      // Filet de sécurité : un pays entièrement écarté reste jouable.
+      for (const boxes of perCountry) {
+        const visible = boxes.some(
+          (r) => r.x1 >= box.x0 && r.x0 <= box.x1 && r.y1 >= box.y0 && r.y0 <= box.y1
+        );
+        if (visible) continue;
+        grow(boxes.reduce((a, b) =>
+          Math.hypot(a.cx - mx, a.cy - my) < Math.hypot(b.cx - mx, b.cy - my) ? a : b));
+      }
+      return this.transformOfBox(box, 12, 0.9);
+    }
+
+    transformOfBox(box, maxScale, fill) {
+      const scale = Math.min(maxScale, fill / Math.max((box.x1 - box.x0) / W, (box.y1 - box.y0) / H));
+      return d3.zoomIdentity
+        .translate(W / 2, H / 2)
+        .scale(Math.max(1, scale))
+        .translate(-(box.x0 + box.x1) / 2, -(box.y0 + box.y1) / 2);
+    }
+
+    /** Zoom sur un pays : on vise sa plus grande masse d'un seul tenant. */
+    zoomToKey(key) {
+      const boxes = this.boxesOf(key);
+      if (!boxes.length) return;
+      const area = (r) => (r.x1 - r.x0) * (r.y1 - r.y0);
+      const main = boxes.reduce((a, b) => (area(a) >= area(b) ? a : b));
+      this.svg.transition().duration(800)
+        .call(this.zoom.transform, this.transformOfBox(main, 50, 0.35));
+    }
+
+    /**
+     * Vue de référence de la partie : la région choisie. Calculée une fois,
+     * pour ne pas ramener le joueur au monde entier à chaque question.
+     */
+    setHome(keys) {
+      this.refreshStroke(); // la carte est visible : on peut mesurer
+      this.home = this.transformFor(keys);
+      this.autoMoved = false;
+      this.svg.transition().duration(700).call(this.zoom.transform, this.home);
+    }
+
+    /** Retour à la vue de référence (ou au monde entier hors partie). */
+    goHome() {
+      this.autoMoved = false;
+      this.svg.transition().duration(600)
+        .call(this.zoom.transform, this.home || d3.zoomIdentity);
     }
 
     zoomBy(factor) {
