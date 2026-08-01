@@ -449,5 +449,8 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .question-panel { width: 100%; order: 0; overflow-y: visible; }
   .game-layout.no-map { justify-content: flex-start; }
   .map-wrap { order: 1; min-height: 52vh; }
+  /* Frontières : trait plus contrasté sur petit écran (l'épaisseur, elle,
+     est calculée en pixels réels dans map.js). */
+  .country { stroke: #050a14; }
   .q-options.grid-flags { grid-template-columns: repeat(4, 1fr); }
 }
