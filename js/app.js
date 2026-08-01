@@ -148,6 +148,7 @@
         ? t("recordChrono", { n: rec.score })
         : t("record", { score: rec.score, time: fmtTime(rec.timeMs) })
       : t("noRecord");
+    refreshMenuBoard();
   }
 
   /* ── Écrans ──────────────────────────────────────────────────── */
@@ -200,6 +201,7 @@
     lastEnd = { summary, isErrorReplay, isNewRecord };
     fillEndScreen();
     show("screen-end");
+    setupBoard(summary, isErrorReplay);
   }
 
   /** Remplit l'écran de fin (relancé si la langue change pendant qu'il est affiché). */
@@ -233,6 +235,142 @@
     const btnErr = $("btn-replay-errors");
     btnErr.classList.toggle("hidden", summary.errors.length === 0);
     btnErr.textContent = t("replayErrors", { n: summary.errors.length });
+  }
+
+  /* ── Classement en ligne ─────────────────────────────────────── */
+
+  function ordinal(n) {
+    if (getLang() === "fr") return n === 1 ? "1er" : `${n}e`;
+    const d10 = n % 10, d100 = n % 100;
+    if (d10 === 1 && d100 !== 11) return `${n}st`;
+    if (d10 === 2 && d100 !== 12) return `${n}nd`;
+    if (d10 === 3 && d100 !== 13) return `${n}rd`;
+    return `${n}th`;
+  }
+  const MEDALS = ["🥇", "🥈", "🥉"];
+
+  /** Une ligne de classement ; `me` met en valeur celle du joueur. */
+  function boardRow(row, i, timed, me) {
+    const li = document.createElement("li");
+    li.className = `board-row${me ? " is-me" : ""}`;
+    const score = timed ? t("countriesScore", { n: row.score }) : `${row.score} pts`;
+    li.innerHTML =
+      `<span class="board-pos">${MEDALS[i] || ordinal(i + 1)}</span>` +
+      `<span class="board-name"></span>` +
+      `<span class="board-score">${score}</span>`;
+    // textContent : un pseudo vient d'un inconnu, jamais interprété comme HTML.
+    li.querySelector(".board-name").textContent =
+      row.pseudo + (me ? ` (${t("boardYou")})` : "");
+    return li;
+  }
+
+  function fillBoardList(el, rows, timed, meId, limit) {
+    el.innerHTML = "";
+    rows.slice(0, limit).forEach((row, i) =>
+      el.appendChild(boardRow(row, i, timed, row.player_id === meId))
+    );
+  }
+
+  // Chaque tap sur une pastille rappelle refreshMenu : on laisse le doigt se
+  // poser avant d'interroger le serveur.
+  let menuBoardTimer = null;
+  function refreshMenuBoard() {
+    clearTimeout(menuBoardTimer);
+    menuBoardTimer = setTimeout(loadMenuBoard, 250);
+  }
+
+  /** Top 5 sur le menu, pour la configuration sélectionnée. */
+  async function loadMenuBoard() {
+    const wrap = $("menu-board-wrap");
+    if (!Leaderboard.enabled()) return wrap.classList.add("hidden");
+    const asked = recordKey();
+    const rows = await Leaderboard.top(state.modeId, state.continent, boardCount());
+    if (asked !== recordKey()) return; // la config a changé pendant la requête
+    wrap.classList.toggle("hidden", rows.length === 0);
+    fillBoardList($("menu-board"), rows, !!MODES[state.modeId].timed,
+                  Leaderboard.playerId(), 5);
+  }
+
+  // Le contre-la-montre n'a pas de nombre de questions : même clé que les records.
+  function boardCount() {
+    return MODES[state.modeId].timed ? "60s" : state.countChoice;
+  }
+
+  /**
+   * Fin de partie : on publie le score sous le pseudo connu (une seule
+   * question posée, la première fois), puis on affiche le classement.
+   */
+  async function setupBoard(summary, isErrorReplay) {
+    const board = $("board");
+    const form = $("pseudo-form");
+    const status = $("board-status");
+    $("board-list").innerHTML = "";
+    status.textContent = "";
+    form.classList.add("hidden");
+
+    // Rejouer ses erreurs n'est pas une vraie partie : hors classement.
+    if (!Leaderboard.enabled() || isErrorReplay || summary.score <= 0) {
+      return board.classList.add("hidden");
+    }
+    board.classList.remove("hidden");
+
+    const known = Leaderboard.pseudo();
+    if (known) return publishAndShow(known, summary);
+
+    form.classList.remove("hidden");
+    $("pseudo-input").value = "";
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      const name = Leaderboard.cleanPseudo($("pseudo-input").value);
+      if (!name) return;
+      form.classList.add("hidden");
+      publishAndShow(name, summary);
+    };
+  }
+
+  async function publishAndShow(name, summary) {
+    const status = $("board-status");
+    status.textContent = t("boardSending");
+    const ok = await Leaderboard.submit({
+      pseudo: name,
+      modeId: state.modeId,
+      continent: state.continent,
+      count: boardCount(),
+      score: summary.score,
+      timeMs: summary.timeMs,
+    });
+    if (!ok) {
+      status.textContent = t("boardFailed");
+      return;
+    }
+    const rows = await Leaderboard.top(state.modeId, state.continent, boardCount());
+    const meId = Leaderboard.playerId();
+    const rank = rows.findIndex((r) => r.player_id === meId) + 1;
+
+    if (!rows.length) {
+      status.textContent = t("boardEmpty");
+    } else if (rank > 0) {
+      status.textContent = t("boardRank", {
+        medal: MEDALS[rank - 1] || "🏆",
+        rank: ordinal(rank),
+        total: rows.length,
+        pseudo: name,
+      });
+    } else {
+      status.textContent = t("boardUnranked", { pseudo: name, n: Leaderboard.FETCH_ROWS });
+    }
+    // Le joueur peut changer d'avis sur son nom.
+    const change = document.createElement("button");
+    change.className = "board-change";
+    change.textContent = t("boardChange");
+    change.onclick = () => {
+      Leaderboard.setPseudo("");
+      setupBoard(summary, false);
+    };
+    status.appendChild(document.createTextNode(" "));
+    status.appendChild(change);
+
+    fillBoardList($("board-list"), rows, !!summary.timed, meId, 5);
   }
 
   /* ── Contrôles globaux ───────────────────────────────────────── */

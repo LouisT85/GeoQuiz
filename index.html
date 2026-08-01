@@ -46,6 +46,12 @@
       <h2 id="count-title" class="menu-section" data-i18n="questionCount"></h2>
       <div id="count-row" class="chip-row"></div>
 
+      <!-- Classement en ligne (masqué tant que Supabase n'est pas configuré) -->
+      <div id="menu-board-wrap" class="hidden">
+        <h2 class="menu-section" data-i18n="boardTitle"></h2>
+        <ol id="menu-board" class="board-list"></ol>
+      </div>
+
       <div class="menu-footer">
         <div class="menu-meta">
           <div id="menu-pool" class="menu-pool"></div>
@@ -104,6 +110,20 @@
         <div class="end-stat"><span id="end-time" class="end-stat-value">–</span><span class="end-stat-label" data-i18n="endTime"></span></div>
         <div class="end-stat"><span id="end-streak" class="end-stat-value">–</span><span class="end-stat-label" data-i18n="endStreak"></span></div>
       </div>
+      <!-- Classement en ligne -->
+      <div id="board" class="board hidden">
+        <form id="pseudo-form" class="pseudo-form hidden">
+          <label class="pseudo-label" for="pseudo-input" data-i18n="boardAsk"></label>
+          <div class="pseudo-row">
+            <input id="pseudo-input" class="pseudo-input" type="text" maxlength="12"
+                   autocomplete="nickname" autocapitalize="words" spellcheck="false">
+            <button type="submit" class="btn-primary" data-i18n="boardSubmit"></button>
+          </div>
+        </form>
+        <div id="board-status" class="board-status"></div>
+        <ol id="board-list" class="board-list"></ol>
+      </div>
+
       <div class="end-actions">
         <button id="btn-replay-errors" class="btn-ghost hidden"></button>
         <button id="btn-replay" class="btn-primary" data-i18n="replay"></button>
@@ -118,6 +138,7 @@
   <script src="js/data/world-topo.js"></script>
   <script src="js/map.js"></script>
   <script src="js/game.js"></script>
+  <script src="js/leaderboard.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
