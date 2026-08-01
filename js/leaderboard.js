@@ -6,9 +6,12 @@
 (function () {
   "use strict";
 
-  /* ── À remplir une fois le projet Supabase créé ──────────────── */
-  const SUPABASE_URL = "";  // ex. "https://abcdefgh.supabase.co"
-  const SUPABASE_KEY = "";  // clé « anon / publishable » — publique par nature
+  /* ── Projet Supabase ─────────────────────────────────────────
+     La clé est « publishable » : publique par conception, elle n'ouvre que ce
+     que les règles RLS de la base autorisent (lecture du classement, ajout
+     d'un score plausible). Voir docs/classement.md. */
+  const SUPABASE_URL = "https://muylntuwrvgrrdipbynw.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_pUfG9CkLTTWTwlx_vts3uA_kEoQqeeO";
 
   /* Barème du jeu. À incrémenter si le calcul des points change : les scores
      d'avant restent en base mais ne sont plus mélangés aux nouveaux. */
