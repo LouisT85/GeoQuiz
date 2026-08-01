@@ -11,7 +11,15 @@ de manipulation à faire une fois.
    possible, pas de carte bancaire).
 2. « New project » : un nom, une région proche (Frankfurt / Paris), et le mot de
    passe de la base — **à garder**, il ne sert pas au jeu mais à toi.
-3. Attendre ~2 minutes que le projet démarre.
+3. Options de sécurité du formulaire de création :
+   - **Enable Data API** : coché — c'est par là que le jeu parle à la base.
+   - **Automatically expose new tables** : décoché — une table créée plus tard
+     ne sera pas exposée par mégarde (le script ci-dessous ouvre explicitement
+     la seule table qui doit l'être).
+   - **Enable automatic RLS** : coché — toute nouvelle table naît protégée.
+   - **Postgres Type** : laisser `Postgres`. OrioleDB est en alpha, et ce
+     choix-là est définitif.
+4. Attendre ~2 minutes que le projet démarre.
 
 ## 2. Créer la table et ses règles
 
@@ -34,6 +42,11 @@ create table scores (
 -- Lecture du classement : rapide même avec beaucoup de lignes.
 create index scores_board_idx
   on scores (mode, continent, nb_questions, scoring_ver, score desc, time_ms asc);
+
+-- Ouvre cette table précise au rôle public. Indispensable si l'option
+-- « Automatically expose new tables » a été décochée à la création du projet ;
+-- sans effet si elle était cochée.
+grant select, insert on table scores to anon;
 
 alter table scores enable row level security;
 
