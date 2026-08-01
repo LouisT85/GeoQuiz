@@ -39,9 +39,11 @@
       record: "🏅 Record : {score} pts · {time}",
       noRecord: "Pas encore de record — à toi de jouer !",
       statQuestion: "Question", statScore: "Score", statStreak: "Série", statTime: "Temps",
-      backMenu: "← Menu", skip: "Passer (0 pt)",
+      backMenu: "← Menu", skip: "Passer (0 pt)", skipStage: "Passer la carte (0 pt)",
       whereIs: "Où se trouve…",
       whichFlag2: "Bien joué ! Et quel est son drapeau ?",
+      whichFlagAnyway: "Tant pis pour la carte — et son drapeau, tu le reconnais ?",
+      mapGivenUp: "C'était là. Le drapeau reste à gagner !",
       whichFlagOf: "Quel est le drapeau de…",
       whichCountryFlag: "À quel pays appartient ce drapeau ?",
       typeCountry: "À quel pays appartient ce drapeau ? Écris son nom :",
@@ -91,9 +93,11 @@
       record: "🏅 Best: {score} pts · {time}",
       noRecord: "No high score yet — your turn!",
       statQuestion: "Question", statScore: "Score", statStreak: "Streak", statTime: "Time",
-      backMenu: "← Menu", skip: "Skip (0 pts)",
+      backMenu: "← Menu", skip: "Skip (0 pts)", skipStage: "Skip the map (0 pts)",
       whereIs: "Where is…",
       whichFlag2: "Nice! Now, which flag is it?",
+      whichFlagAnyway: "Never mind the map — do you know its flag?",
+      mapGivenUp: "That's where it was. The flag is still up for grabs!",
       whichFlagOf: "Which flag belongs to…",
       whichCountryFlag: "Which country does this flag belong to?",
       typeCountry: "Which country does this flag belong to? Type its name:",
@@ -359,6 +363,7 @@
       this.stageIdx = 0;
       this.wrongInQuestion = 0;
       this.wrongKeys = new Set();
+      this.mapGivenUp = false;
       this.qPoints = 0;
       this.qStart = Date.now();
       this.resolved = false;
@@ -392,14 +397,20 @@
       const instr = $("q-instruction");
       opts.innerHTML = "";
       tgt.innerHTML = "";
+      $("btn-skip").textContent = this.canSkipStage() ? t("skipStage") : t("skip");
 
       if (stage === "map") {
         instr.textContent = t("whereIs");
         tgt.innerHTML = `<div class="target-name">${cname(this.q)}</div>`;
         this.map.setEnabled(true);
       } else if (stage === "flag" || stage === "flag2") {
-        instr.textContent = stage === "flag2" ? t("whichFlag2") : t("whichFlagOf");
-        if (stage === "flag") {
+        // Emplacement abandonné : pas de « bien joué », et on rappelle le pays
+        // puisque le joueur n'a pas eu la satisfaction de le trouver.
+        instr.textContent =
+          stage === "flag"
+            ? t("whichFlagOf")
+            : this.mapGivenUp ? t("whichFlagAnyway") : t("whichFlag2");
+        if (stage === "flag" || this.mapGivenUp) {
           tgt.innerHTML = `<div class="target-name">${cname(this.q)}</div>`;
         }
         if (this.map) this.map.setEnabled(false);
@@ -535,8 +546,27 @@
       }
     }
 
+    /** Vrai quand « Passer » n'abandonne que l'étape : la carte du mode complet. */
+    canSkipStage() {
+      return this.stage === "map" && this.stageIdx < this.mode.stages.length - 1;
+    }
+
+    /** Emplacement abandonné : on montre le pays, le drapeau reste à jouer. */
+    skipStage() {
+      this.stageDone = true;
+      this.mapGivenUp = true;
+      this.wrongInQuestion++; // la question ne sera pas « sans faute »
+      this.map.reveal(this.q.id);
+      this.setFeedback(t("mapGivenUp"), "bad");
+      this.pendingTimeout = setTimeout(() => {
+        this.stageIdx++;
+        this.renderStage();
+      }, 1800);
+    }
+
     skip() {
-      if (this.resolved) return;
+      if (this.resolved || this.stageDone) return;
+      if (this.canSkipStage()) return this.skipStage();
       this.resolved = true;
       this.streak = 0;
       this.attempted++;
