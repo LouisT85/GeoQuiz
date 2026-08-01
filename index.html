@@ -37,19 +37,25 @@
       <h1 class="logo">🌍 Géo<span>Quiz</span></h1>
       <p class="tagline" data-i18n="tagline"></p>
 
-      <h2 class="menu-section" data-i18n="gameMode"></h2>
-      <div id="mode-grid" class="mode-grid"></div>
+      <!-- Deux colonnes sur grand écran : réglages à gauche, classement à
+           droite, pour que tout l'accueil tienne sans défilement. -->
+      <div class="menu-cols">
+        <div class="menu-main">
+          <h2 class="menu-section" data-i18n="gameMode"></h2>
+          <div id="mode-grid" class="mode-grid"></div>
 
-      <h2 class="menu-section" data-i18n="region"></h2>
-      <div id="continent-row" class="chip-row"></div>
+          <h2 class="menu-section" data-i18n="region"></h2>
+          <div id="continent-row" class="chip-row"></div>
 
-      <h2 id="count-title" class="menu-section" data-i18n="questionCount"></h2>
-      <div id="count-row" class="chip-row"></div>
+          <h2 id="count-title" class="menu-section" data-i18n="questionCount"></h2>
+          <div id="count-row" class="chip-row"></div>
+        </div>
 
-      <!-- Classement en ligne (masqué tant que Supabase n'est pas configuré) -->
-      <div id="menu-board-wrap" class="hidden">
-        <h2 class="menu-section" data-i18n="boardTitle"></h2>
-        <ol id="menu-board" class="board-list"></ol>
+        <!-- Classement en ligne (masqué tant que Supabase n'est pas configuré) -->
+        <aside id="menu-board-wrap" class="hidden">
+          <h2 class="menu-section" data-i18n="boardTitle"></h2>
+          <ol id="menu-board" class="board-list"></ol>
+        </aside>
       </div>
 
       <div class="menu-footer">
