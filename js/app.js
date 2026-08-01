@@ -418,6 +418,56 @@
     })
   );
 
+  /* ── Installation de l'app ───────────────────────────────────── */
+
+  // iPad récent : se présente comme un Mac, mais avec un écran tactile.
+  const isIOS =
+    /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  const isInstalled = () =>
+    window.matchMedia("(display-mode: standalone)").matches ||
+    navigator.standalone === true;
+
+  // Chrome et Edge préviennent quand l'app est installable : on met leur
+  // invitation de côté pour la déclencher depuis notre bouton, au moment
+  // choisi par le joueur. Safari n'expose rien d'équivalent.
+  let installPrompt = null;
+
+  function refreshInstallButton() {
+    // Ne rien proposer qui ne mènerait nulle part : déjà installé, ou
+    // navigateur sans installation possible (Firefox).
+    const possible = !isInstalled() && (installPrompt !== null || isIOS);
+    $("install-row").classList.toggle("hidden", !possible);
+  }
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault(); // pas de bandeau natif : c'est notre bouton qui décide
+    installPrompt = e;
+    refreshInstallButton();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    installPrompt = null;
+    $("install-ios").classList.add("hidden");
+    refreshInstallButton();
+  });
+
+  $("btn-install").addEventListener("click", async () => {
+    if (!installPrompt) {
+      // iPhone : Apple ne permet aucune installation automatique, on montre
+      // les deux gestes à faire.
+      $("install-ios").classList.toggle("hidden");
+      return;
+    }
+    installPrompt.prompt();
+    await installPrompt.userChoice;
+    // Une invitation ne sert qu'une fois ; le navigateur en renverra une au
+    // prochain chargement si le joueur a refusé.
+    installPrompt = null;
+    refreshInstallButton();
+  });
+
   /* ── PWA : installable, hors-ligne et mise à jour sans friction ──
      Le service worker précache tout : sans ce bandeau, une nouvelle version
      n'arrivait qu'au bout de plusieurs relancements — d'où les vidages de
@@ -486,4 +536,5 @@
 
   applyI18n();
   buildMenu();
+  refreshInstallButton();
 })();

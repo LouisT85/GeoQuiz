@@ -56,6 +56,13 @@
           <h2 class="menu-section" data-i18n="boardTitle"></h2>
           <ol id="menu-board" class="board-list"></ol>
         </aside>
+
+        <!-- Installation : masqué si déjà installé ou si le navigateur ne
+             sait pas le faire (Firefox), instructions à la place sur iPhone. -->
+        <div id="install-row" class="install-row hidden">
+          <button id="btn-install" class="btn-ghost" data-i18n="installApp"></button>
+          <p id="install-ios" class="install-ios hidden" data-i18n="installIos"></p>
+        </div>
       </div>
 
       <div class="menu-footer">
