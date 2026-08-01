@@ -1,8 +1,8 @@
 """Test de bout en bout GéoQuiz (Playwright).
 
-Vérifie : menu, mode complet (clic carte faux/juste + drapeau), passer/révéler,
-mode silhouettes, mode capitales, mode contre-la-montre, mode drapeaux sans
-carte, fin de partie et record.
+Vérifie : menu, mode complet (clic carte faux/juste + drapeau), emplacement
+passé avec drapeau encore jouable, mode silhouettes, mode capitales, mode
+contre-la-montre, mode drapeaux sans carte, fin de partie et record.
 
     pip install playwright && playwright install chromium
     python3 tests/e2e_smoke.py
@@ -77,6 +77,8 @@ def main():
 
             page.evaluate(CLICK_COUNTRY, [target, False])  # clic faux
             assert page.locator("#q-feedback").text_content().startswith("Raté")
+            page.wait_for_timeout(800)                     # le rouge ne s'efface plus
+            assert page.locator("#map-svg path.country.wrong").count() == 1
             page.evaluate(CLICK_COUNTRY, [target, True])   # clic juste
             page.wait_for_selector(".flag-btn", timeout=3000)
             assert page.locator(".flag-btn").count() == 8
@@ -86,10 +88,20 @@ def main():
             print(f"mode complet OK : {target!r}, score", page.locator("#stat-score").text_content())
 
             page.wait_for_timeout(1400)  # question suivante
-            page.click("#btn-skip")      # passer -> révélation
+            assert page.locator("#map-svg path.country.wrong").count() == 0
+            target = page.locator(".target-name").text_content()
+            page.click("#btn-skip")      # emplacement abandonné -> révélation
             page.wait_for_timeout(400)
-            assert "La réponse était" in page.locator("#q-feedback").text_content()
-            print("passer/révéler OK")
+            assert "C'était là" in page.locator("#q-feedback").text_content()
+
+            # …mais le drapeau reste à jouer, et il rapporte des points.
+            page.wait_for_selector(".flag-btn", timeout=3000)
+            assert page.locator(".target-name").text_content() == target
+            before = int(page.locator("#stat-score").text_content())
+            page.evaluate(CLICK_GOOD_FLAG, target)
+            page.wait_for_timeout(400)
+            assert int(page.locator("#stat-score").text_content()) > before
+            print("emplacement passé, drapeau toujours jouable OK")
 
             # ── Mode silhouettes (Europe) ──
             page.click("#btn-quit")
