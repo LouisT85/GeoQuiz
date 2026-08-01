@@ -472,9 +472,13 @@
         /* http simple ou navigateur ancien : le jeu marche sans */
       });
 
+    // À la toute première visite, clients.claim() déclenche aussi
+    // « controllerchange » : sans ce garde-fou la page se rechargerait pour
+    // rien. On ne recharge que si un service worker contrôlait déjà la page.
+    const hadController = Boolean(navigator.serviceWorker.controller);
     let reloading = false;
     navigator.serviceWorker.addEventListener("controllerchange", () => {
-      if (reloading) return;
+      if (!hadController || reloading) return;
       reloading = true;
       location.reload();
     });
