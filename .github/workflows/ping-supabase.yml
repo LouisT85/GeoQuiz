@@ -1,0 +1,33 @@
+# Un projet Supabase gratuit sans le moindre appel pendant 7 jours est mis en
+# pause : le classement devient alors injoignable jusqu'à réactivation à la
+# main. Une requête hebdomadaire suffit à l'éviter.
+#
+# La clé utilisée ici est la clé « publishable », publique par conception : elle
+# figure déjà dans js/leaderboard.js, servi à tous les visiteurs. Rien à cacher,
+# donc pas de secret à configurer. Les règles RLS de la base sont ce qui
+# protège les données.
+
+name: ping supabase
+
+on:
+  schedule:
+    # Tous les lundis. Volontairement décalé de l'heure pile : les tâches
+    # planifiées y sont massivement retardées chez GitHub.
+    - cron: "17 6 * * 1"
+  workflow_dispatch: # déclenchement manuel depuis l'onglet Actions
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Interroger le classement
+        run: |
+          code=$(curl -sS -m 30 -o /dev/null -w '%{http_code}' \
+            "https://muylntuwrvgrrdipbynw.supabase.co/rest/v1/scores?select=id&limit=1" \
+            -H "apikey: sb_publishable_pUfG9CkLTTWTwlx_vts3uA_kEoQqeeO")
+          echo "Réponse : HTTP $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::Le classement ne répond pas — projet en pause ou clé changée ?"
+            exit 1
+          fi
+          echo "Base réveillée pour une semaine de plus."

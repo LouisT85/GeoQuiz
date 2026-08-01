@@ -93,29 +93,24 @@ Puis incrémenter `CACHE` dans `sw.js` (convention du dépôt) et pousser.
 > la table — pas le secret de la clé. Ne jamais mettre la clé `service_role`
 > dans le dépôt, elle, contourne toutes les règles.
 
-## 4. Empêcher la mise en veille
+## 4. Mise en veille : déjà traitée
 
 Sur le plan gratuit, un projet **sans le moindre appel pendant 7 jours est mis
 en pause** : le classement devient injoignable jusqu'à réactivation manuelle
-(les données, elles, ne sont pas perdues). Si le jeu n'est pas joué toutes les
-semaines, ajouter un réveil automatique — par exemple
-`.github/workflows/ping.yml` :
+(les données, elles, ne sont pas perdues).
 
-```yaml
-name: ping supabase
-on:
-  schedule: [{ cron: "0 6 * * 1" }]   # tous les lundis
-  workflow_dispatch:
-jobs:
-  ping:
-    runs-on: ubuntu-latest
-    steps:
-      - run: curl -sS -o /dev/null -w "%{http_code}\n"
-          "${{ secrets.SUPABASE_URL }}/rest/v1/scores?select=id&limit=1"
-          -H "apikey: ${{ secrets.SUPABASE_KEY }}"
-```
+C'est réglé par [`.github/workflows/ping-supabase.yml`](../.github/workflows/ping-supabase.yml),
+qui interroge le classement tous les lundis. Rien à configurer : la clé y est
+en clair puisqu'elle est déjà publique. Le job **échoue volontairement** si la
+base ne répond pas — GitHub envoie alors un e-mail, ce qui sert d'alerte.
 
-(avec `SUPABASE_URL` et `SUPABASE_KEY` déclarés dans Settings → Secrets)
+Deux points à connaître :
+
+- Il se déclenche aussi à la main : onglet **Actions → ping supabase → Run
+  workflow**.
+- GitHub **désactive les tâches planifiées d'un dépôt public après 60 jours
+  sans aucune activité**. Un commit de temps en temps suffit à les garder
+  vivantes ; sinon GitHub prévient par e-mail avant de les couper.
 
 ## Ce qui a été prévu dans le code
 
