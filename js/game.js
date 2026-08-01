@@ -358,6 +358,7 @@
       this.q = this.questions[this.index];
       this.stageIdx = 0;
       this.wrongInQuestion = 0;
+      this.wrongKeys = new Set();
       this.qPoints = 0;
       this.qStart = Date.now();
       this.resolved = false;
@@ -482,9 +483,14 @@
         this.map.markFound(key);
         this.stageSuccess("map");
       } else {
-        this.stageWrong++;
-        this.wrongInQuestion++;
-        this.map.flashWrong(key);
+        // Le rouge persiste jusqu'à la question suivante : les emplacements
+        // déjà tentés restent visibles et ne se paient qu'une fois.
+        if (!this.wrongKeys.has(key)) {
+          this.wrongKeys.add(key);
+          this.stageWrong++;
+          this.wrongInQuestion++;
+        }
+        this.map.markWrong(key);
         this.setFeedback(t("missedMap", { name: this.nameOf(key, feature) }), "bad");
       }
     }

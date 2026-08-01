@@ -64,11 +64,9 @@
       this.svg.classed("map-disabled", !b);
     }
 
-    /** Clic raté : flash rouge temporaire. */
-    flashWrong(key) {
-      const p = this.pathOf(key);
-      p.classed("wrong", true);
-      setTimeout(() => p.classed("wrong", false), 650);
+    /** Clic raté : le pays reste rouge jusqu'à la question suivante. */
+    markWrong(key) {
+      this.pathOf(key).classed("wrong", true);
     }
 
     /** Pays trouvé : teinte verte persistante pendant la partie. */
