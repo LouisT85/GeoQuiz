@@ -1,6 +1,6 @@
 /* Service worker : précache tout le jeu pour un fonctionnement 100 % hors-ligne.
    Incrémenter CACHE à chaque mise à jour des fichiers pour la propager. */
-const CACHE = "geoquiz-v6";
+const CACHE = "geoquiz-v7";
 
 // countries.js assigne window.GEO_COUNTRIES ; ici, window = self.
 self.window = self;
@@ -16,6 +16,7 @@ const CORE = [
   "js/data/world-topo.js",
   "js/map.js",
   "js/game.js",
+  "js/leaderboard.js",
   "js/app.js",
   "manifest.webmanifest",
   "assets/icons/icon-192.png",
